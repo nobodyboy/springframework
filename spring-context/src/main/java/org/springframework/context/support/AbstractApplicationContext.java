@@ -517,19 +517,41 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	public void refresh() throws BeansException, IllegalStateException {
 		synchronized (this.startupShutdownMonitor) {
 			// Prepare this context for refreshing.
+			/**
+			 * 刷新容器前的准备工作：
+			 * 1.初始化属性值
+			 *  设置startupDate
+			 *  closed = false  active = true
+			 *  applicationListeners
+			 * 2.initPropertiesResource 默认为空，给子类实现(主要是web容器需要实现该方法)
+			 */
 			prepareRefresh();
 
 			// Tell the subclass to refresh the internal bean factory.
+			/**
+			 * 首先返回 DefaultListableBeanFactory; 同时设置refreshed值为true,设置serializationId的值 xx@xx
+			 */
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
 			// Prepare the bean factory for use in this context.
+			/**
+			 * beanFactory前置准备工作：
+			 *	1.设置类加载器
+			 *  2.设置自动注入时需要忽略的类和依赖的类型
+			 */
 			prepareBeanFactory(beanFactory);
 
 			try {
 				// Allows post-processing of the bean factory in context subclasses.
+				/**
+				 * 用于添加额外的beanPostProcess 默认为空 在web容器时会单独实现，
+				 * 比如web容器注册添加 ServletContextAwareProcessor
+				 */
 				postProcessBeanFactory(beanFactory);
 
 				// Invoke factory processors registered as beans in the context.
+				// 执行beanFactoryPostProcessors 和beanDefinitionRegistryPostProcessor接口的类
+
 				invokeBeanFactoryPostProcessors(beanFactory);
 
 				// Register bean processors that intercept bean creation.
@@ -651,7 +673,13 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		beanFactory.addPropertyEditorRegistrar(new ResourceEditorRegistrar(this, getEnvironment()));
 
 		// Configure the bean factory with context callbacks.
+		/**
+		 * 添加BeanPostProcessor ApplicationContextAwareProcessor
+		 */
 		beanFactory.addBeanPostProcessor(new ApplicationContextAwareProcessor(this));
+		/**
+		 * 添加接口类型 在依赖注入的时候实现这些接口的类都不会注入  ？？？ 【为什么】
+		 */
 		beanFactory.ignoreDependencyInterface(EnvironmentAware.class);
 		beanFactory.ignoreDependencyInterface(EmbeddedValueResolverAware.class);
 		beanFactory.ignoreDependencyInterface(ResourceLoaderAware.class);
@@ -661,6 +689,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 		// BeanFactory interface not registered as resolvable type in a plain factory.
 		// MessageSource registered (and found for autowiring) as a bean.
+		/**
+		 * 依赖注入的类型
+		 */
 		beanFactory.registerResolvableDependency(BeanFactory.class, beanFactory);
 		beanFactory.registerResolvableDependency(ResourceLoader.class, this);
 		beanFactory.registerResolvableDependency(ApplicationEventPublisher.class, this);
@@ -670,6 +701,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		beanFactory.addBeanPostProcessor(new ApplicationListenerDetector(this));
 
 		// Detect a LoadTimeWeaver and prepare for weaving, if found.
+		/**
+		 * 先忽略...
+		 */
 		if (beanFactory.containsBean(LOAD_TIME_WEAVER_BEAN_NAME)) {
 			beanFactory.addBeanPostProcessor(new LoadTimeWeaverAwareProcessor(beanFactory));
 			// Set a temporary ClassLoader for type matching.
@@ -701,9 +735,34 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	/**
 	 * Instantiate and invoke all registered BeanFactoryPostProcessor beans,
 	 * respecting explicit order if given.
+	 * 实例化并调用所有已注册的BeanFactoryPostProcessor bean，如果给定，则遵循显式顺序。
 	 * <p>Must be called before singleton instantiation.
 	 */
 	protected void invokeBeanFactoryPostProcessors(ConfigurableListableBeanFactory beanFactory) {
+		/**
+		 * getBeanFactoryPostProcess()返回beanFactoryPostProcessors
+		 * 默认为空。但是提供add方法 addBeanFactoryPostProcessor() 说明支持api接口增加BeanFactoryPostProcessor.
+		 * 子类能注册一个beanDefinition 父类只能修改beanDefinition
+		 * 执行顺序：
+		 *  api
+		 *    - 子类
+		 *    	- 实现PriorityOrdered接口的类
+		 *      - 实现Ordered接口的类
+		 *      - 其他的类
+		 *    - 父类
+		 *		- 实现PriorityOrdered接口的类
+		 *		- 实现Ordered接口的类
+		 *	    - 其他的类
+		 *  内置
+		 *  	- 子类
+		 * 		 - 实现PriorityOrdered接口的类
+		 * 		 - 实现Ordered接口的类
+		 * 		 - 其他的类
+		 * 		- 父类
+		 * 		 - 实现PriorityOrdered接口的类
+		 * 		 - 实现Ordered接口的类
+		 * 		 - 其他的类
+		 */
 		PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors(beanFactory, getBeanFactoryPostProcessors());
 
 		// Detect a LoadTimeWeaver and prepare for weaving, if found in the meantime

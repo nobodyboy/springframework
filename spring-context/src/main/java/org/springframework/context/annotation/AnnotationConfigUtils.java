@@ -138,6 +138,9 @@ public abstract class AnnotationConfigUtils {
 	}
 
 	/**
+	 * 实例化执行：注册固定的几个bean
+	 */
+	/**
 	 * Register all relevant annotation post processors in the given registry.
 	 * @param registry the registry to operate on
 	 * @param source the configuration source element (already extracted)
@@ -234,6 +237,11 @@ public abstract class AnnotationConfigUtils {
 		processCommonDefinitionAnnotations(abd, abd.getMetadata());
 	}
 
+	/**
+	 * 判断一个类的注解上面有没有配置 Lazy, Primary, DependsOn, Role, Description
+	 * @param abd
+	 * @param metadata
+	 */
 	static void processCommonDefinitionAnnotations(AnnotatedBeanDefinition abd, AnnotatedTypeMetadata metadata) {
 		AnnotationAttributes lazy = attributesFor(metadata, Lazy.class);
 		if (lazy != null) {
@@ -264,6 +272,13 @@ public abstract class AnnotationConfigUtils {
 		}
 	}
 
+	/**
+	 * 类是否是代理类 如果是就需要返回代理类的holder
+	 * @param metadata
+	 * @param definition
+	 * @param registry
+	 * @return
+	 */
 	static BeanDefinitionHolder applyScopedProxyMode(
 			ScopeMetadata metadata, BeanDefinitionHolder definition, BeanDefinitionRegistry registry) {
 

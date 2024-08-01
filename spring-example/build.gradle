@@ -1,0 +1,24 @@
+plugins {
+    id 'java'
+}
+
+group 'org.springframework'
+version '5.2.20.BUILD-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile(project(":spring-aop"))
+    compile(project(":spring-beans"))
+    compile(project(":spring-core"))
+    compile(project(":spring-expression"))
+    optional(project(":spring-context"))
+    optional(project(":spring-instrument"))
+    optional("javax.annotation:javax.annotation-api")
+}
+
+test {
+    useJUnitPlatform()
+}

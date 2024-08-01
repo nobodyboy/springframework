@@ -608,6 +608,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 
 	/**
 	 * Class representing injection information about an annotated field.
+	 * 类中通过Autowired注解修饰的属性
 	 */
 	private class AutowiredFieldElement extends InjectionMetadata.InjectedElement {
 
@@ -623,6 +624,13 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 			this.required = required;
 		}
 
+		/**
+		 * 完成bean中使用@Autowired注解的属性注入
+		 * @param bean  实体化的bean
+		 * @param beanName 实例化bean的名称
+		 * @param pvs 暂不知
+		 * @throws Throwable
+		 */
 		@Override
 		protected void inject(Object bean, @Nullable String beanName, @Nullable PropertyValues pvs) throws Throwable {
 			Field field = (Field) this.member;
@@ -640,11 +648,19 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 				value = resolveFieldValue(field, bean, beanName);
 			}
 			if (value != null) {
+				// 通过反射给bean注入field属性
 				ReflectionUtils.makeAccessible(field);
 				field.set(bean, value);
 			}
 		}
 
+		/**
+		 * 找到bean中field属性对应对象bean
+		 * @param field
+		 * @param bean
+		 * @param beanName
+		 * @return
+		 */
 		@Nullable
 		private Object resolveFieldValue(Field field, Object bean, @Nullable String beanName) {
 			DependencyDescriptor desc = new DependencyDescriptor(field, this.required);
@@ -654,6 +670,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 			TypeConverter typeConverter = beanFactory.getTypeConverter();
 			Object value;
 			try {
+				// 实际完成查找的动作，返回的对象就是field属性对应的实体bean
 				value = beanFactory.resolveDependency(desc, beanName, autowiredBeanNames, typeConverter);
 			}
 			catch (BeansException ex) {

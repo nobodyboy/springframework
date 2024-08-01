@@ -84,8 +84,21 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 * {@link Configuration @Configuration} classes
 	 */
 	public AnnotationConfigApplicationContext(Class<?>... componentClasses) {
+		/**
+		 * 1.实例化一个DefaultListableBeanFactory的对象 内部有个beanDefinitionMap
+		 * 2.实例化一个reader  用于注册bean到bdm；同时往bdm中放入4个beanProcess
+		 * 3.实例化一个scanner 类定义扫描器 扫描指定的类路径上带有@Component @Service @Repository @Controller注解的类
+		 */
 		this();
+		/**
+		 * reader.registry(class)
+		 * 把配置类注册到bdm中
+		 */
 		register(componentClasses);
+		/**
+		 * 注册之后 刷新上下文
+		 *
+		 */
 		refresh();
 	}
 
